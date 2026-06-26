@@ -16,4 +16,4 @@ xlrd>=2.0.1
 # pip install pymysql          (MySQL)
 # pip install psycopg2-binary  (PostgreSQL)
 
-gunicorn>=21.0.0
+gunicorn>=23.0.0
