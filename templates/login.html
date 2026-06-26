@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QueryMind — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #0f0e0d;
+  --paper:   #f5f2ec;
+  --cream:   #ede9df;
+  --warm:    #d4c9b0;
+  --accent:  #c8622a;
+  --accent2: #3d6b5c;
+  --muted:   #8a7f72;
+  --border:  #cfc8bb;
+  --serif:   'DM Serif Display', Georgia, serif;
+  --sans:    'DM Sans', sans-serif;
+  --mono:    'DM Mono', monospace;
+  --error:   #b83c3c;
+  --success: #3d6b5c;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+/* ── Left brand panel ── */
+.brand-panel {
+  background: var(--ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 56px 60px;
+  overflow: hidden;
+}
+
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(200,98,42,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(61,107,92,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(245,242,236,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,242,236,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.brand-top { position: relative; z-index: 1; }
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 80px;
+}
+.brand-icon {
+  width: 40px; height: 40px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.brand-name {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  color: var(--paper);
+}
+
+.brand-headline {
+  font-family: var(--serif);
+  font-size: 3.4rem;
+  line-height: 1.05;
+  color: var(--paper);
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+}
+.brand-headline em { font-style: italic; color: var(--accent); }
+
+.brand-sub {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 340px;
+}
+
+.brand-bottom { position: relative; z-index: 1; }
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: rgba(245,242,236,0.55);
+}
+.feature-dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sql-preview {
+  background: rgba(245,242,236,0.05);
+  border: 1px solid rgba(245,242,236,0.1);
+  border-radius: 10px;
+  padding: 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.sql-comment { color: rgba(245,242,236,0.28); }
+.sql-keyword { color: var(--accent); }
+.sql-fn      { color: #e8c77a; }
+.sql-str     { color: #7dcfb6; }
+
+/* ── Right form panel ── */
+.form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+  background: var(--paper);
+}
+
+.auth-container { width: 100%; max-width: 400px; }
+
+.auth-tabs {
+  display: flex;
+  margin-bottom: 36px;
+  border-bottom: 2px solid var(--border);
+}
+.auth-tab {
+  padding: 10px 0;
+  margin-right: 28px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  border: none;
+  background: none;
+  font-family: var(--sans);
+}
+.auth-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 2px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+.auth-tab.active { color: var(--ink); }
+.auth-tab.active::after { transform: scaleX(1); }
+
+.auth-heading {
+  font-family: var(--serif);
+  font-size: 2.1rem;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.auth-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.field input {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field input::placeholder { color: var(--warm); font-style: italic; }
+.field input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(15,14,13,0.06);
+  background: #fff;
+}
+.field input.err { border-color: var(--error); }
+
+.global-error {
+  background: rgba(184,60,60,0.08);
+  border: 1px solid rgba(184,60,60,0.25);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: var(--error);
+  margin-bottom: 18px;
+  display: none;
+}
+.global-error.visible { display: block; }
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover {
+  background: #2a2520;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+}
+.btn-primary:active { transform: translateY(0); box-shadow: none; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-text { transition: opacity 0.2s; }
+.btn-primary.loading .btn-text { opacity: 0; }
+
+.btn-loader {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  border: 2px solid rgba(245,242,236,0.3);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+.btn-primary.loading .btn-loader { display: block; }
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+.switch-link {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 22px;
+}
+.switch-link button {
+  background: none;
+  border: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.form-view { display: none; }
+.form-view.active { display: block; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.auth-container { animation: slideUp 0.35s ease; }
+
+@media (max-width: 860px) {
+  body { grid-template-columns: 1fr; }
+  .brand-panel { display: none; }
+  .form-panel { padding: 40px 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Left: Brand -->
+<div class="brand-panel">
+  <div class="brand-top">
+    <div class="brand-mark">
+      <div class="brand-icon">Q/</div>
+      <div class="brand-name">QueryMind</div>
+    </div>
+    <h1 class="brand-headline">Ask your<br>database in<br><em>plain English.</em></h1>
+    <p class="brand-sub">Transform natural language into precise SQL queries. Your data, your questions — answered instantly.</p>
+  </div>
+
+  <div class="brand-bottom">
+    <div class="feature-list">
+      <div class="feature-item"><div class="feature-dot"></div>AI-powered SQL generation with self-correction</div>
+      <div class="feature-item"><div class="feature-dot"></div>Upload your own SQLite database</div>
+      <div class="feature-item"><div class="feature-dot"></div>Persistent query history per account</div>
+      <div class="feature-item"><div class="feature-dot"></div>Session analytics &amp; accuracy tracking</div>
+    </div>
+    <div class="sql-preview">
+      <div class="sql-comment">-- "Show employees earning above average"</div>
+      <div><span class="sql-keyword">SELECT</span> name, salary</div>
+      <div><span class="sql-keyword">FROM</span> employees</div>
+      <div><span class="sql-keyword">WHERE</span> salary &gt; (</div>
+      <div>&nbsp;&nbsp;<span class="sql-keyword">SELECT</span> <span class="sql-fn">AVG</span>(salary)</div>
+      <div>&nbsp;&nbsp;<span class="sql-keyword">FROM</span> employees</div>
+      <div>)<span class="sql-keyword"> ORDER BY</span> salary <span class="sql-keyword">DESC</span>;</div>
+    </div>
+  </div>
+</div>
+
+<!-- Right: Form -->
+<div class="form-panel">
+  <div class="auth-container">
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login"    onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab"        id="tab-register" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <!-- Login -->
+    <div class="form-view active" id="view-login">
+      <h2 class="auth-heading">Welcome back.</h2>
+      <p class="auth-sub">Sign in to access your query history.</p>
+
+      <!-- Default admin hint--> 
+      <div style="background:rgba(200,98,42,.08);border:1px solid rgba(200,98,42,.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#a0522d;line-height:1.6">
+        <strong>&#128273; Default Admin:</strong> username <code style="background:rgba(200,98,42,.12);padding:1px 5px;border-radius:3px">admin</code> / password <code style="background:rgba(200,98,42,.12);padding:1px 5px;border-radius:3px">admin123</code><br>
+        <span style="opacity:.8">New users register as <em>User</em> role. Admins can promote accounts.</span>
+      </div>
+
+      <div class="global-error" id="login-error"></div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="your_username" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') submitLogin()" />
+      </div>
+
+      <button class="btn-primary" id="login-btn" onclick="submitLogin()">
+        <span class="btn-text">Sign In</span>
+        <div class="btn-loader"></div>
+      </button>
+
+      <div class="switch-link">No account? <button onclick="switchTab('register')">Create one free</button></div>
+    </div>
+  
+    <!-- Register -->
+    <div class="form-view" id="view-register">
+      <h2 class="auth-heading">Get started.</h2>
+      <p class="auth-sub">Create a free account to save your history.</p>
+
+      <div class="global-error" id="register-error"></div>
+
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="reg-username" placeholder="your_username" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min. 6 characters" autocomplete="new-password"
+               onkeydown="if(event.key==='Enter') submitRegister()" />
+      </div>
+
+      <button class="btn-primary" id="register-btn" onclick="submitRegister()">
+        <span class="btn-text">Create Account</span>
+        <div class="btn-loader"></div>
+      </button>
+
+      <div class="switch-link">Already have an account? <button onclick="switchTab('login')">Sign in</button></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('view-' + tab).classList.add('active');
+  clearErrors();
+}
+
+function clearErrors() {
+  document.querySelectorAll('.global-error').forEach(el => {
+    el.classList.remove('visible');
+    el.textContent = '';
+  });
+  document.querySelectorAll('input').forEach(el => el.classList.remove('err'));
+}
+
+function setLoading(btnId, on) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = on;
+  btn.classList.toggle('loading', on);
+}
+
+async function submitLogin() {
+  clearErrors();
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!username || !password) {
+    showError('login-error', 'Please fill in all fields.');
+    return;
+  }
+
+  setLoading('login-btn', true);
+  try {
+    const res  = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = '/';
+    } else {
+      showError('login-error', data.error || 'Login failed.');
+      document.getElementById('login-password').classList.add('err');
+    }
+  } catch(e) {
+    showError('login-error', 'Network error. Please try again.');
+  } finally {
+    setLoading('login-btn', false);
+  }
+}
+
+async function submitRegister() {
+  clearErrors();
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!username || !email || !password) {
+    showError('register-error', 'Please fill in all fields.');
+    return;
+  }
+
+  setLoading('register-btn', true);
+  try {
+    const res  = await fetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = '/';
+    } else {
+      showError('register-error', data.error || 'Registration failed.');
+    }
+  } catch(e) {
+    showError('register-error', 'Network error. Please try again.');
+  } finally {
+    setLoading('register-btn', false);
+  }
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+</script>
+</body>
+</html>

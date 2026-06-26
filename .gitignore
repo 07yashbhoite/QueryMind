@@ -1,0 +1,9 @@
+.env
+.env.local
+*.db
+uploads/
+models/*.pkl
+__pycache__/
+*.pyc
+.venv/
+venv/

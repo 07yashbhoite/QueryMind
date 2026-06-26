@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QueryMind ML</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0f0e0d;--paper:#f5f2ec;--cream:#ede9df;--warm:#d4c9b0;
+  --accent:#c8622a;--accent2:#3d6b5c;--muted:#8a7f72;--border:#cfc8bb;
+  --surface:#eae6dc;--serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --error:#b83c3c;--success:#3d6b5c;--warn:#a0732a;--sidebar-w:300px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh}
+.app{display:flex;flex-direction:column;min-height:100vh}
+
+/* Header */
+header{border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;background:rgba(245,242,236,.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:32px;height:32px;border:1.5px solid var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--accent)}
+.logo-name{font-family:var(--serif);font-size:1.2rem}
+.logo-ml{font-size:10px;font-family:var(--mono);background:var(--accent);color:var(--paper);padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.db-pill{display:flex;align-items:center;gap:8px;background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-family:var(--mono);font-size:12px}
+.db-dot{width:6px;height:6px;border-radius:50%;animation:blink 2.5s infinite}
+.db-dot.sqlite{background:#3d6b5c}.db-dot.mysql{background:#c8622a}.db-dot.postgresql{background:#4a7a9b}
+.db-type-badge{font-size:9px;padding:1px 5px;border-radius:3px;font-family:var(--mono);text-transform:uppercase;font-weight:600}
+.db-type-badge.sqlite{background:rgba(61,107,92,.15);color:#3d6b5c}
+.db-type-badge.mysql{background:rgba(200,98,42,.15);color:#c8622a}
+.db-type-badge.postgresql{background:rgba(74,122,155,.15);color:#4a7a9b}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.header-right{display:flex;align-items:center;gap:14px}
+.nav-tabs{display:flex;gap:2px;background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:3px}
+.nav-tab{padding:5px 14px;border:none;background:none;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-radius:5px;transition:all .15s}
+.nav-tab.active{background:var(--ink);color:var(--paper)}
+.user-badge{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.user-avatar{width:28px;height:28px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--paper);font-family:var(--mono)}
+.btn-logout{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-family:var(--sans);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s}
+.btn-logout:hover{border-color:var(--ink);color:var(--ink)}
+
+/* Layout */
+.main{display:grid;grid-template-columns:var(--sidebar-w) 1fr;flex:1}
+.sidebar{border-right:1px solid var(--border);background:var(--cream);display:flex;flex-direction:column;overflow-y:auto;position:sticky;top:60px;height:calc(100vh - 60px)}
+.sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-thumb{background:var(--warm);border-radius:2px}
+.sidebar-inner{padding:24px 20px;display:flex;flex-direction:column;gap:26px}
+.s-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-family:var(--mono)}
+
+/* Schema box */
+.schema-box{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.9;max-height:200px;overflow-y:auto}
+.schema-table{color:var(--accent);font-weight:500}.schema-cols{color:var(--muted)}
+
+/* Samples */
+.sample-list{display:flex;flex-direction:column;gap:5px}
+.sample-item{padding:9px 12px;background:var(--paper);border:1px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;transition:all .15s;line-height:1.4;color:var(--ink)}
+.sample-item:hover{border-color:var(--accent);color:var(--accent);padding-left:16px;background:rgba(200,98,42,.04)}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:12px 10px;text-align:center}
+.stat-num{font-family:var(--mono);font-size:1.4rem;font-weight:500;color:var(--ink);line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Pages */
+.content-wrap{flex:1;overflow:hidden}
+.page{display:none;padding:32px 48px;flex-direction:column;gap:20px;max-width:940px}
+.page.active{display:flex}
+
+/* ── DB CONNECTION PANEL ── */
+.db-panel{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.db-panel-tabs{display:flex;border-bottom:1px solid var(--border)}
+.db-tab{padding:12px 20px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;font-family:var(--sans);border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px}
+.db-tab.active{color:var(--ink);border-bottom-color:var(--ink)}
+.db-tab:hover{color:var(--ink)}
+.db-tab-icon{font-size:14px}
+.db-tab-body{display:none;padding:20px}
+.db-tab-body.active{display:block}
+
+/* Connection form */
+.conn-form{display:flex;flex-direction:column;gap:14px}
+.conn-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.conn-input{width:100%;padding:11px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:13px;color:var(--ink);outline:none;transition:border-color .2s}
+.conn-input:focus{border-color:var(--ink)}
+.conn-input::placeholder{color:var(--warm);font-style:italic}
+.conn-input.err{border-color:var(--error)}
+.conn-hint{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+.conn-examples{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.conn-example{font-size:11px;font-family:var(--mono);color:var(--muted);cursor:pointer;padding:4px 8px;background:var(--paper);border:1px solid var(--border);border-radius:5px;transition:all .15s}
+.conn-example:hover{border-color:var(--accent);color:var(--accent)}
+.conn-example span{color:var(--accent2);font-weight:500}
+
+/* Upload area */
+.upload-area{position:relative;border:1.5px dashed var(--border);border-radius:10px;padding:28px 16px;cursor:pointer;transition:all .2s;color:var(--muted);background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:110px;text-align:center}
+.upload-area:hover{border-color:var(--accent);color:var(--accent);background:rgba(200,98,42,.04)}
+.upload-area.dragover{border-color:var(--accent);background:rgba(200,98,42,.07);transform:scale(1.01)}
+.upload-area input{display:none}
+.upload-icon{width:30px;height:30px;margin-bottom:8px;opacity:.5;transition:all .2s}
+.upload-area:hover .upload-icon,.upload-area.dragover .upload-icon{opacity:.8;transform:translateY(-2px)}
+.upload-text{font-weight:500;font-size:13px}.upload-sub{font-size:11px;margin-top:3px;opacity:.7}
+
+.btn-row{display:flex;gap:8px}
+.btn-connect{flex:1;padding:11px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-connect:hover{background:#2a2520;transform:translateY(-1px)}
+.btn-connect:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-test{padding:11px 16px;background:transparent;border:1.5px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s}
+.btn-test:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-reset-db{width:100%;padding:9px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all .15s;margin-top:8px}
+.btn-reset-db:hover{border-color:var(--accent);color:var(--accent)}
+
+.conn-status{border-radius:8px;padding:10px 14px;font-size:12px;font-family:var(--mono);display:none;margin-top:4px}
+.conn-status.ok{background:rgba(61,107,92,.08);border:1px solid rgba(61,107,92,.2);color:var(--success);display:block}
+.conn-status.err{background:rgba(184,60,60,.06);border:1px solid rgba(184,60,60,.2);color:var(--error);display:block}
+
+.active-db-banner{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12px}
+.adb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.adb-dot.sqlite{background:var(--accent2)}.adb-dot.mysql{background:var(--accent)}.adb-dot.postgresql{background:#4a7a9b}
+.adb-name{font-family:var(--mono);font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adb-type{font-size:10px;padding:2px 6px;border-radius:3px;font-family:var(--mono);text-transform:uppercase;font-weight:600;background:var(--cream)}
+
+/* Query block */
+.query-block{background:var(--cream);border:1px solid var(--border);border-radius:12px;padding:20px 24px;transition:border-color .2s}
+.query-block:focus-within{border-color:var(--ink)}
+.input-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:10px}
+.input-row{display:flex;gap:10px}
+#question{flex:1;background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:13px 16px;font-size:15px;color:var(--ink);font-family:var(--sans);outline:none;transition:border-color .2s}
+#question::placeholder{color:var(--warm);font-style:italic}
+#question:focus{border-color:var(--ink)}
+.btn-query{padding:13px 22px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.btn-query:hover{background:#2a2520;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.btn-query:active{transform:translateY(0);box-shadow:none}
+.btn-query:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-execute{padding:10px 20px;background:var(--accent2);color:var(--paper);border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.btn-execute:hover{background:#2d5244;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.btn-execute:active{transform:translateY(0);box-shadow:none}
+.btn-execute:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.intent-row{display:flex;align-items:center;gap:10px;margin-top:10px;min-height:22px}
+.intent-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:11px;font-family:var(--mono);font-weight:500;background:rgba(200,98,42,.1);color:var(--accent);border:1px solid rgba(200,98,42,.2);transition:all .2s}
+.intent-badge.hidden{display:none}
+.hidden{display:none!important}
+.intent-conf{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.suggestions-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.suggestion-chip{padding:4px 10px;background:var(--paper);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s;color:var(--muted)}
+.suggestion-chip:hover{border-color:var(--accent2);color:var(--accent2)}
+
+/* Prediction bar */
+.prediction-bar{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;font-size:12px}
+.pred-label{font-family:var(--mono);color:var(--muted);white-space:nowrap}
+.pred-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.pred-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.pred-fill.high{background:var(--accent2)}.pred-fill.med{background:var(--warn)}.pred-fill.low{background:var(--error)}
+.pred-pct{font-family:var(--mono);font-size:12px;color:var(--ink);white-space:nowrap;min-width:36px;text-align:right}
+
+/* Loading */
+.loading-wrap{display:none}.loading-wrap.visible{display:block}
+.loading-bar{height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.loading-progress{height:100%;width:30%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;animation:loadSlide 1s ease-in-out infinite}
+@keyframes loadSlide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.loading-text{font-size:13px;color:var(--muted);font-family:var(--mono);display:flex;align-items:center;gap:8px;padding:8px 0 4px}
+.loading-dot{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:dotPop .8s ease-in-out infinite}
+@keyframes dotPop{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
+/* Error */
+.error-card{background:rgba(184,60,60,.06);border:1px solid rgba(184,60,60,.2);border-radius:10px;padding:14px 18px;color:var(--error);font-size:14px;gap:10px;align-items:flex-start;display:none}
+.error-card.visible{display:flex}
+
+/* Result */
+.result-card{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:fadeUp .25s ease;display:none}
+.result-card.visible{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fix-notice{padding:10px 18px;background:rgba(160,115,42,.08);border-bottom:1px solid rgba(160,115,42,.2);font-size:12px;font-family:var(--mono);color:var(--warn);align-items:center;gap:8px;display:none}
+.fix-notice.visible{display:flex}
+.result-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.result-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{padding:3px 10px;border-radius:20px;font-size:11px;font-family:var(--mono);font-weight:500}
+.tag-rows{background:rgba(61,107,92,.1);color:var(--accent2);border:1px solid rgba(61,107,92,.2)}
+.tag-ms{background:rgba(200,98,42,.1);color:var(--accent);border:1px solid rgba(200,98,42,.2)}
+.tag-ok{background:rgba(61,107,92,.1);color:var(--accent2);border:1px solid rgba(61,107,92,.2)}
+.tag-intent{background:rgba(200,98,42,.1);color:var(--accent);border:1px solid rgba(200,98,42,.2)}
+.sql-section{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--ink)}
+.sql-section .s-label{color:rgba(245,242,236,.3);margin-bottom:8px}
+.sql-code{font-family:var(--mono);font-size:13px;color:#e8c77a;white-space:pre-wrap;word-break:break-all;line-height:1.7}
+.explanation{padding:14px 20px;border-bottom:1px solid var(--border);font-size:14px;color:var(--ink);line-height:1.65;background:rgba(61,107,92,.04);font-style:italic}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--surface)}
+th{padding:10px 16px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:var(--mono);border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
+td{padding:10px 16px;font-size:13px;font-family:var(--mono);border-bottom:1px solid rgba(207,200,187,.5);color:var(--ink)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(200,98,42,.03)}
+.null-val{color:var(--warm);font-style:italic}
+.no-results{text-align:center;padding:36px;color:var(--muted);font-size:13px}
+
+/* History */
+.history-card{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none}
+.history-card.visible{display:block}
+.history-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.history-hdr h2{font-family:var(--serif);font-size:1.1rem;font-weight:400}
+.btn-clear{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.btn-clear:hover{border-color:var(--error);color:var(--error)}
+.history-list{padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.history-item{padding:10px 14px;background:var(--paper);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s}
+.history-item:hover{border-color:var(--accent)}
+.h-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.h-dot.ok{background:var(--success)}.h-dot.err{background:var(--error)}
+.h-q{font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-time{font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+
+/* ML dashboard */
+.ml-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ml-card{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.ml-card-full{grid-column:1/-1}
+.ml-card-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ml-card-hdr h3{font-family:var(--serif);font-size:1rem;font-weight:400}
+.ml-card-body{padding:16px 20px}
+.ml-status{display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono)}
+.ml-dot{width:7px;height:7px;border-radius:50%}.ml-dot.on{background:var(--success)}.ml-dot.off{background:var(--warn)}
+.intent-bars,.feat-bars{display:flex;flex-direction:column;gap:8px}
+.intent-bar-row,.feat-row{display:flex;align-items:center;gap:10px}
+.intent-bar-label,.feat-label{font-family:var(--mono);font-size:11px;color:var(--muted);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
+.intent-bar-track,.feat-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.intent-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .5s ease}
+.feat-fill{height:100%;background:var(--accent2);border-radius:3px}
+.intent-bar-pct,.feat-pct{font-family:var(--mono);font-size:11px;width:36px;text-align:right;color:var(--ink)}
+.cluster-list{display:flex;flex-direction:column;gap:10px}
+.cluster-item{background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.cluster-label{font-size:13px;font-weight:500;margin-bottom:6px;color:var(--accent)}
+.cluster-questions{display:flex;flex-direction:column;gap:3px}
+.cluster-q{font-size:12px;color:var(--muted);padding-left:10px;border-left:2px solid var(--border)}
+.cluster-count{font-size:11px;font-family:var(--mono);color:var(--muted);margin-top:4px}
+.btn-train{padding:10px 20px;background:var(--accent);color:var(--paper);border:none;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-train:hover{background:#b55522;transform:translateY(-1px)}.btn-train:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.train-result{background:rgba(61,107,92,.08);border:1px solid rgba(61,107,92,.2);border-radius:8px;padding:12px 16px;font-size:13px;font-family:var(--mono);color:var(--accent2);display:none;margin-top:12px}
+.train-result.visible{display:block}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--warm);border-radius:3px}
+
+@media(max-width:900px){
+  .main{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .page{padding:20px}
+  header{padding:0 20px}
+  .header-center,.nav-tabs{display:none}
+  .ml-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">Q/</div>
+    <div class="logo-name">QueryMind<span class="logo-ml"></span></div>
+  </div>
+  <div class="db-pill" id="header-db-pill">
+    <div class="db-dot {{ db_type }}" id="header-db-dot"></div>
+    <span id="header-db-name">{{ db_name }}</span>
+    <span class="db-type-badge {{ db_type }}" id="header-db-type">{{ db_type }}</span>
+  </div>
+  <div class="header-right">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('query')">Query</button>
+      <button class="nav-tab" onclick="showPage('ml')">ML Dashboard</button>
+      <button class="nav-tab" onclick="showPage('perms')" id="tab-perms">Permissions</button>
+    </div>
+    <div class="user-badge">
+      <div class="user-avatar" style="background:{% if is_admin %}var(--accent){% else %}var(--ink){% endif %}">{{ username[0]|upper }}</div>
+      <span>{{ username }}</span>
+      <span style="font-size:10px;font-family:var(--mono);background:{% if is_admin %}var(--accent){% else %}rgba(61,107,92,.15){% endif %};color:{% if is_admin %}var(--paper){% else %}var(--accent2){% endif %};padding:2px 7px;border-radius:4px;font-weight:600">{{ role|upper }}</span>
+    </div>
+    {% if is_admin %}<a href="/admin" style="background:var(--accent);color:var(--paper);border:none;border-radius:6px;padding:5px 12px;font-family:var(--sans);font-size:12px;cursor:pointer;text-decoration:none;display:inline-block">Admin Panel</a>{% endif %}
+    <button class="btn-logout" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<div class="main">
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <!-- Active DB indicator -->
+      <div>
+        <div class="s-label">Active Database</div>
+        <div class="active-db-banner" id="active-db-banner">
+          <div class="adb-dot {{ db_type }}" id="adb-dot"></div>
+          <div class="adb-name" id="adb-name">{{ db_name }}</div>
+          <div class="adb-type" id="adb-type">{{ db_type }}</div>
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div>
+        <div class="s-label">Database Schema</div>
+        <div class="schema-box" id="schema-display">
+          {% for line in schema.split('\n') %}
+            {% set parts = line.split('(') %}
+            <div>
+              <span class="schema-table">{{ parts[0] }}</span>
+              {% if parts|length > 1 %}<span class="schema-cols">({{ parts[1] }}</span>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Samples -->
+      <div>
+        <div class="s-label">Sample Questions</div>
+        <div class="sample-list">
+          {% for q in samples %}
+          <div class="sample-item" onclick="setQuestion('{{ q }}')">{{ q }}</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div>
+        <div class="s-label">Your Analytics</div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-num" id="stat-total">—</div><div class="stat-lbl">Queries</div></div>
+          <div class="stat-box"><div class="stat-num" id="stat-acc" style="color:var(--accent2)">—</div><div class="stat-lbl">Accuracy</div></div>
+          <div class="stat-box"><div class="stat-num" id="stat-ms" style="color:var(--accent)">—</div><div class="stat-lbl">Avg ms</div></div>
+          <div class="stat-box"><div class="stat-num" id="stat-fixed" style="color:var(--warn)">—</div><div class="stat-lbl">Self-fixed</div></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content-wrap">
+
+    <!-- ── QUERY PAGE ── -->
+    <div class="page active" id="page-query">
+
+      <!-- DB Connection Panel -->
+      <div class="db-panel">
+        <div class="db-panel-tabs">
+          <button class="db-tab active" id="dbtab-local"    onclick="switchDbTab('local')"><span class="db-tab-icon">📂</span> Local Path</button>
+          <button class="db-tab"        id="dbtab-upload"   onclick="switchDbTab('upload')"><span class="db-tab-icon">⬆</span> Upload .db</button>
+          <button class="db-tab"        id="dbtab-csv"      onclick="switchDbTab('csv')"><span class="db-tab-icon">📊</span> CSV / Excel</button>
+          <button class="db-tab"        id="dbtab-mysql"    onclick="switchDbTab('mysql')"><span class="db-tab-icon">🐬</span> MySQL</button>
+          <button class="db-tab"        id="dbtab-postgres" onclick="switchDbTab('postgres')"><span class="db-tab-icon">🐘</span> PostgreSQL</button>
+          <button class="db-tab"        id="dbtab-demo"     onclick="switchDbTab('demo')"><span class="db-tab-icon">🗄</span> Demo DB</button>
+        </div>
+
+        <!-- LOCAL PATH -->
+        <div class="db-tab-body active" id="dbbody-local">
+          <div class="conn-form">
+            <div>
+              <label class="conn-label">Full path to your SQLite .db file</label>
+              <input class="conn-input" id="local-path" type="text"
+                     placeholder="e.g. C:\Users\you\mydb.db  or  /home/you/mydb.db">
+              <div class="conn-hint">Enter the exact path to any SQLite database file on your computer.</div>
+              <div class="conn-examples">
+                <div style="font-size:10px;color:var(--muted);margin-bottom:2px;font-family:var(--mono)">EXAMPLES</div>
+                <div class="conn-example" onclick="fillPath('C:\\\\Users\\\\YourName\\\\Downloads\\\\mydb.db')"><span>Windows:</span> C:\Users\YourName\Downloads\mydb.db</div>
+                <div class="conn-example" onclick="fillPath('/home/username/databases/mydb.db')"><span>Linux/Mac:</span> /home/username/databases/mydb.db</div>
+                <div class="conn-example" onclick="fillPath('./demo.db')"><span>Relative:</span> ./demo.db</div>
+              </div>
+            </div>
+            <div id="local-status" class="conn-status"></div>
+            <div class="btn-row">
+              <button class="btn-test" onclick="testLocal()">Test</button>
+              <button class="btn-connect" onclick="connectLocal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPLOAD -->
+        <div class="db-tab-body" id="dbbody-upload">
+          <div class="conn-form">
+            <label class="upload-area" id="upload-label">
+              <input type="file" id="db-upload" accept=".db" onchange="uploadDB(this)">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <div class="upload-text">Drop your .db file here</div>
+              <div class="upload-sub">or click to browse — SQLite files only</div>
+            </label>
+            <div id="upload-status" class="conn-status"></div>
+          </div>
+        </div>
+
+        <!-- MYSQL -->
+        <div class="db-tab-body" id="dbbody-mysql">
+          <div class="conn-form">
+            <div>
+              <label class="conn-label">MySQL Connection String</label>
+              <input class="conn-input" id="mysql-str" type="text"
+                     placeholder="mysql://username:password@localhost:3306/database_name">
+              <div class="conn-hint">Format: mysql://user:password@host:port/database</div>
+              <div class="conn-examples">
+                <div class="conn-example" onclick="fillMySQL('mysql://root:password@localhost:3306/mydb')"><span>Local:</span> mysql://root:password@localhost:3306/mydb</div>
+                <div class="conn-example" onclick="fillMySQL('mysql://admin:pass@192.168.1.10:3306/production')"><span>Remote:</span> mysql://admin:pass@192.168.1.10:3306/production</div>
+              </div>
+            </div>
+            <div id="mysql-status" class="conn-status"></div>
+            <div class="conn-hint" style="color:var(--warn)">⚠ Requires: <code style="font-family:var(--mono)">pip install pymysql</code></div>
+            <div class="btn-row">
+              <button class="btn-test" onclick="testMySQL()">Test</button>
+              <button class="btn-connect" onclick="connectMySQL()">Connect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- POSTGRESQL -->
+        <div class="db-tab-body" id="dbbody-postgres">
+          <div class="conn-form">
+            <div>
+              <label class="conn-label">PostgreSQL Connection String</label>
+              <input class="conn-input" id="pg-str" type="text"
+                     placeholder="postgresql://username:password@localhost:5432/database_name">
+              <div class="conn-hint">Format: postgresql://user:password@host:port/database</div>
+              <div class="conn-examples">
+                <div class="conn-example" onclick="fillPG('postgresql://postgres:password@localhost:5432/mydb')"><span>Local:</span> postgresql://postgres:password@localhost:5432/mydb</div>
+                <div class="conn-example" onclick="fillPG('postgresql://admin:pass@db.example.com:5432/prod')"><span>Remote:</span> postgresql://admin:pass@db.example.com:5432/prod</div>
+              </div>
+            </div>
+            <div id="pg-status" class="conn-status"></div>
+            <div class="conn-hint" style="color:var(--warn)">⚠ Requires: <code style="font-family:var(--mono)">pip install psycopg2-binary</code></div>
+            <div class="btn-row">
+              <button class="btn-test" onclick="testPG()">Test</button>
+              <button class="btn-connect" onclick="connectPG()">Connect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CSV UPLOAD -->
+        <div class="db-tab-body" id="dbbody-csv">
+          <div class="conn-form">
+
+            <!-- Drop zone -->
+            <label class="upload-area" id="csv-upload-label">
+              <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" onchange="onCSVFileSelected(this)">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+              </svg>
+              <div class="upload-text">Drop your CSV or Excel file here</div>
+              <div class="upload-sub">Supports .csv · .xlsx · .xls — auto-detects delimiter &amp; types</div>
+            </label>
+
+            <!-- Options row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="csv-options" class="hidden">
+              <div>
+                <label class="conn-label">Table name</label>
+                <input class="conn-input" id="csv-table-name" type="text" placeholder="auto (from filename)">
+                <div class="conn-hint">Name of the SQL table created from this file</div>
+              </div>
+              <div id="csv-delim-group">
+                <label class="conn-label">Delimiter (CSV only)</label>
+                <select class="conn-input" id="csv-delimiter" style="cursor:pointer">
+                  <option value="">Auto-detect</option>
+                  <option value=",">Comma  ,</option>
+                  <option value=";">Semicolon  ;</option>
+                  <option value="&#9;">Tab  \t</option>
+                  <option value="|">Pipe  |</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Sheet selector — only shown for Excel files -->
+            <div id="csv-sheet-group" class="hidden">
+              <label class="conn-label">Excel Sheet</label>
+              <select class="conn-input" id="csv-sheet-name" style="cursor:pointer" onchange="onSheetChange()">
+              </select>
+              <div class="conn-hint">Select which sheet to load as a table</div>
+            </div>
+
+            <!-- Preview box -->
+            <div id="csv-preview-box" class="hidden">
+              <div class="s-label" style="margin-bottom:8px">Preview — first 3 rows</div>
+              <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px">
+                <table id="csv-preview-table" style="width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)">
+                  <thead id="csv-preview-head" style="background:var(--surface)"></thead>
+                  <tbody id="csv-preview-body"></tbody>
+                </table>
+              </div>
+              <div id="csv-preview-meta" style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:6px"></div>
+            </div>
+
+            <div id="csv-status" class="conn-status"></div>
+
+            <div class="btn-row" id="csv-btn-row" style="display:none">
+              <button class="btn-connect" id="csv-load-btn" onclick="loadCSV()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                Load &amp; Connect
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- DEMO -->
+        <div class="db-tab-body" id="dbbody-demo">
+          <div class="conn-form">
+            <p style="font-size:13px;color:var(--muted);line-height:1.6">Switch back to the built-in demo database. It contains 7 tables: students, courses, enrollments, employees, departments, products, and orders — all pre-loaded with sample data.</p>
+            <button class="btn-connect" onclick="resetToDemo()">
+              ↩ Use Demo Database
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Query input -->
+      <div class="query-block">
+        <div class="input-label">Natural Language Query</div>
+        <div class="input-row">
+          <input type="text" id="question"
+            placeholder="Ask anything about your database in plain English…"
+            oninput="onQuestionInput()" onkeydown="if(event.key==='Enter') generateSQL()" />
+          <button class="btn-query" id="generate-btn" onclick="generateSQL()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Generate SQL
+          </button>
+        </div>
+        <div class="intent-row">
+          <div class="intent-badge hidden" id="intent-badge"></div>
+          <div class="intent-conf hidden" id="intent-conf"></div>
+        </div>
+        <div class="suggestions-row" id="suggestions-row"></div>
+      </div>
+
+      <!-- Prediction bar -->
+      <div id="pred-wrap" style="display:none">
+        <div class="prediction-bar">
+          <div class="pred-label">Success probability</div>
+          <div class="pred-track"><div class="pred-fill" id="pred-fill" style="width:0%"></div></div>
+          <div class="pred-pct" id="pred-pct">—</div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading-wrap" class="loading-wrap">
+        <div class="loading-bar"><div class="loading-progress"></div></div>
+        <div class="loading-text"><div class="loading-dot"></div><span id="loading-text">Generating SQL…</span></div>
+      </div>
+
+      <!-- Error -->
+      <div id="error-box" class="error-card"><span>⚠</span><span id="error-msg"></span></div>
+
+      <!-- Step 1 Result: SQL Editor Card -->
+      <div id="sql-editor-card" class="result-card" style="display:none">
+        <div class="result-header" style="background:var(--ink)">
+          <div class="result-tags">
+            <span class="tag tag-intent" id="tag-intent" style="display:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.15)"></span>
+            <span class="tag" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12)" id="tag-gen-ms">0ms</span>
+          </div>
+          <div style="font-size:11px;font-family:var(--mono);color:rgba(245,242,236,.4)">Review &amp; edit before executing</div>
+        </div>
+        <div class="sql-section" style="border-bottom:none;padding-bottom:0">
+          <div class="s-label" style="margin-bottom:8px">Generated SQL — you can edit this</div>
+          <textarea id="sql-editor"
+            spellcheck="false"
+            style="width:100%;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:13px;color:#e8c77a;line-height:1.7;resize:vertical;min-height:80px;padding:0 0 16px 0"
+          ></textarea>
+        </div>
+        <!-- Permission warning bar (shown when user lacks permission for this SQL type) -->
+        <div id="perm-warn-bar" style="display:none;align-items:center;gap:10px;padding:10px 20px;background:rgba(184,60,60,.12);border-top:1px solid rgba(184,60,60,.25)">
+          <span style="font-size:14px">🔒</span>
+          <span class="perm-warn-msg" style="font-size:12px;color:#b83c3c;flex:1"></span>
+          <button onclick="showPage('perms')" style="font-size:11px;background:none;border:1px solid #b83c3c;color:#b83c3c;border-radius:5px;padding:3px 10px;cursor:pointer">Request Access</button>
+        </div>
+        <div style="padding:14px 20px;background:var(--ink);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="font-size:12px;font-family:var(--mono);color:rgba(245,242,236,.35)">
+            ✏ Edit the SQL above if needed, then execute
+          </div>
+          <button class="btn-execute" id="execute-btn" onclick="executeSQL()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg>
+            Execute Query
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2 Result: Results Card -->
+      <div id="result-card" class="result-card">
+        <div id="fix-notice" class="fix-notice">⚡ Query auto-corrected — original SQL had an error.</div>
+        <div class="result-header">
+          <div class="result-tags">
+            <span class="tag tag-rows" id="tag-rows">0 rows</span>
+            <span class="tag tag-ms"   id="tag-ms">0ms</span>
+            <span class="tag tag-ok">✓ Executed</span>
+          </div>
+          <button onclick="resetToGenerate()" style="font-size:11px;font-family:var(--mono);color:var(--muted);background:none;border:1px solid var(--border);border-radius:5px;padding:3px 10px;cursor:pointer;transition:all .15s" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">← Edit SQL</button>
+        </div>
+        <div class="sql-section">
+          <div class="s-label">Executed SQL</div>
+          <div class="sql-code" id="sql-output"></div>
+        </div>
+        <div class="explanation" id="explanation"></div>
+        <div class="table-wrap">
+          <table><thead id="table-head"></thead><tbody id="table-body"></tbody></table>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="history-card" id="history-section">
+        <div class="history-hdr">
+          <h2>Query History</h2>
+          <button class="btn-clear" onclick="clearHistory()">Clear history</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </div>
+
+    <!-- ── ML DASHBOARD PAGE ── -->
+    <div class="page" id="page-ml">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div>
+          <h2 style="font-family:var(--serif);font-size:1.6rem;font-weight:400">ML Dashboard</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Three locally-trained machine learning models</p>
+        </div>
+        <div>
+          <button class="btn-train" id="train-btn" onclick="trainModels()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Retrain All Models
+          </button>
+          <div class="train-result" id="train-result"></div>
+        </div>
+      </div>
+
+      <div class="ml-grid">
+        <div class="ml-card">
+          <div class="ml-card-hdr">
+            <h3>Intent Classifier</h3>
+            <div class="ml-status"><div class="ml-dot on" id="clf-dot"></div><span id="clf-status" style="font-size:12px;font-family:var(--mono)">Naive Bayes · TF-IDF</span></div>
+          </div>
+          <div class="ml-card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Classifies your question into SQL intent. The predicted intent is injected as a hint into the LLM prompt.</p>
+            <div class="s-label">Intent Classes</div>
+            <div class="intent-bars" id="intent-bars"><div style="font-size:12px;color:var(--muted);font-family:var(--mono)">Loading…</div></div>
+          </div>
+        </div>
+        <div class="ml-card">
+          <div class="ml-card-hdr">
+            <h3>Success Predictor</h3>
+            <div class="ml-status"><div class="ml-dot off" id="pred-dot"></div><span id="pred-status" style="font-size:12px;font-family:var(--mono)">Random Forest</span></div>
+          </div>
+          <div class="ml-card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Predicts whether your query will succeed using 17 features from your question, intent scores, and schema complexity.</p>
+            <div class="s-label">Feature Importance</div>
+            <div class="feat-bars" id="feat-bars"><div style="font-size:12px;color:var(--muted);font-family:var(--mono)">Run 10+ queries to train this model.</div></div>
+          </div>
+        </div>
+        <div class="ml-card">
+          <div class="ml-card-hdr">
+            <h3>Query Suggester</h3>
+            <div class="ml-status"><div class="ml-dot off" id="sug-dot"></div><span id="sug-status" style="font-size:12px;font-family:var(--mono)">TF-IDF · Cosine Similarity</span></div>
+          </div>
+          <div class="ml-card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Finds similar successful past queries using cosine similarity. Suggestions appear as chips below the input box.</p>
+            <div class="s-label">Status</div>
+            <div id="sug-info" style="font-size:12px;color:var(--muted);font-family:var(--mono)">Run 3+ queries to enable suggestions.</div>
+          </div>
+        </div>
+        <div class="ml-card">
+          <div class="ml-card-hdr">
+            <h3>Query Clusters</h3>
+            <div class="ml-status"><div class="ml-dot off"></div><span style="font-size:12px;font-family:var(--mono)">K-Means · k=5</span></div>
+          </div>
+          <div class="ml-card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Groups your query history into topic clusters. Helps identify common patterns in your queries.</p>
+            <div class="cluster-list" id="cluster-list"><div style="font-size:12px;color:var(--muted);font-family:var(--mono)">Run 10+ queries to see clusters.</div></div>
+          </div>
+        </div>
+        <div class="ml-card ml-card-full">
+          <div class="ml-card-hdr"><h3>How ML Enhances Your Queries</h3></div>
+          <div class="ml-card-body">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+              <div><div style="font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Step 1 — Classify</div><div style="font-size:13px;color:var(--ink);line-height:1.6">Naive Bayes reads your question and predicts SQL intent (AGGREGATE, JOIN, FILTER…) with confidence score.</div></div>
+              <div><div style="font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Step 2 — Predict</div><div style="font-size:13px;color:var(--ink);line-height:1.6">Random Forest uses 17 features to estimate query success probability before the LLM call is made.</div></div>
+              <div><div style="font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Step 3 — Generate</div><div style="font-size:13px;color:var(--ink);line-height:1.6">Intent hint injected into prompt. LLM generates dialect-aware SQL for SQLite, MySQL, or PostgreSQL.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PERMISSIONS PAGE ── -->
+    <div class="page" id="page-perms" style="max-width:800px">
+      <h2 style="font-family:var(--serif);font-size:1.6rem;font-weight:400;margin-bottom:4px">Permissions &amp; Access</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:24px">Your current permissions and ability to request additional access.</p>
+
+      <div id="perm-role-banner" style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:2rem" id="perm-role-icon">&#128100;</div>
+        <div>
+          <div style="font-weight:600;font-size:15px" id="perm-role-title">Role: User</div>
+          <div style="font-size:12px;color:var(--muted)" id="perm-role-desc">Standard access. Request extra permissions below.</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;font-family:var(--mono)">Your Permissions</div>
+        <div id="perms-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+      </div>
+
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-family:var(--mono)">Request Additional Permission</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Permission</label>
+            <select id="req-perm-select" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--mono);font-size:12px;background:var(--paper);color:var(--ink);outline:none">
+              <option value="">- Select a permission -</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Reason (optional)</label>
+            <textarea id="req-perm-reason" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--sans);font-size:13px;background:var(--paper);color:var(--ink);outline:none;resize:vertical" placeholder="Why do you need this permission?"></textarea>
+          </div>
+          <div id="req-perm-status" style="font-size:12px;display:none"></div>
+          <button onclick="submitPermRequest()" style="align-self:flex-start;background:var(--ink);color:var(--paper);border:none;border-radius:7px;padding:9px 20px;font-family:var(--sans);font-size:13px;cursor:pointer">Submit Request</button>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;font-family:var(--mono)">My Requests</div>
+        <div id="my-reqs-list" style="display:flex;flex-direction:column;gap:8px">
+          <div style="color:var(--muted);font-size:13px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Permission Denied Modal -->
+<div id="perm-denied-modal" style="display:none;position:fixed;inset:0;background:rgba(15,14,13,.45);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center">
+  <div style="background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:28px;min-width:400px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <div style="font-size:2rem;margin-bottom:10px">&#128274;</div>
+    <h3 style="font-family:var(--serif);font-size:1.3rem;font-weight:400;margin-bottom:8px">Permission Required</h3>
+    <p id="perm-denied-msg" style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeDeniedModal()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:7px 16px;font-family:var(--sans);font-size:13px;color:var(--muted);cursor:pointer">Close</button>
+      <button onclick="showPage('perms');closeDeniedModal()" style="background:var(--ink);color:var(--paper);border:none;border-radius:6px;padding:7px 16px;font-family:var(--sans);font-size:13px;cursor:pointer">Request Access &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth-aware fetch ──────────────────────────────────────────────
+async function apiFetch(url, opts) {
+  const res = await fetch(url, opts);
+  if (res.status === 401) { window.location.href='/login'; return null; }
+  if (res.status === 403) {
+    const data = await res.clone().json().catch(()=>({}));
+    showDenied(data.message || data.error || 'You do not have permission to perform this action.');
+    return null;
+  }
+  return res;
+}
+
+// Inject CSRF-safe JSON header helper
+function jsonOpts(body) {
+  return { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) };
+}
+
+// ── Page / tab switching ──────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const idx = {query:0,ml:1,perms:2}[name]||0;
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if (name==='ml') loadMLDashboard();
+  if (name==='perms') loadPermissionsPage();
+}
+
+// ── Permission Denied modal ───────────────────────────────────────
+function showDenied(msg) {
+  document.getElementById('perm-denied-msg').textContent = msg;
+  document.getElementById('perm-denied-modal').style.display='flex';
+}
+function closeDeniedModal() {
+  document.getElementById('perm-denied-modal').style.display='none';
+}
+
+// ── Permissions page ──────────────────────────────────────────────
+let _myPerms = null;
+
+async function loadPermissionsPage() {
+  const data = await (await fetch('/permissions/available')).json();
+  const myReqs = await (await fetch('/permissions/my-requests')).json();
+  _myPerms = data;
+
+  // Role banner
+  const isAdmin = data.role === 'admin';
+  document.getElementById('perm-role-icon').textContent = isAdmin ? '' : '';
+  document.getElementById('perm-role-title').textContent = `Role: ${data.role.charAt(0).toUpperCase()+data.role.slice(1)}`;
+  document.getElementById('perm-role-desc').textContent = isAdmin
+    ? 'You have full administrative access to all features.'
+    : 'Standard access. Request additional permissions below.';
+  document.getElementById('perm-role-banner').style.borderColor = isAdmin ? 'var(--accent)' : 'var(--border)';
+
+  // Permissions grid
+  const grid = document.getElementById('perms-grid');
+  grid.innerHTML = data.permissions.map(p => `
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--paper);border:1px solid ${p.granted?'var(--accent2)':'var(--border)'};border-radius:8px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${p.granted?'var(--accent2)':'var(--warm)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:${p.granted?'var(--accent2)':'var(--muted)'}">${p.key}</div>
+        <div style="font-size:11px;color:var(--muted)">${p.description}</div>
+      </div>
+      ${p.granted?'<span style="font-size:10px;font-family:var(--mono);background:rgba(61,107,92,.12);color:var(--accent2);padding:2px 6px;border-radius:4px">✓</span>':'<span style="font-size:10px;font-family:var(--mono);background:rgba(0,0,0,.06);color:var(--muted);padding:2px 6px;border-radius:4px">✗</span>'}
+    </div>`).join('');
+
+  // Fill request dropdown with ungrantd perms
+  const sel = document.getElementById('req-perm-select');
+  const ungranted = data.permissions.filter(p => !p.granted && !p.is_role_default);
+  sel.innerHTML = '<option value="">— Select a permission —</option>' +
+    ungranted.map(p=>`<option value="${p.key}">${p.key} — ${p.description}</option>`).join('');
+  if(!ungranted.length) sel.innerHTML = '<option value="">You have all available permissions!</option>';
+
+  // My requests list
+  const reqs = myReqs.requests || [];
+  const list = document.getElementById('my-reqs-list');
+  list.innerHTML = reqs.length ? reqs.map(r=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--paper);border:1px solid var(--border);border-radius:8px">
+      <div>
+        <div style="font-size:12px;font-family:var(--mono);font-weight:500">${r.permission}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.reason||'No reason given'} · ${r.created_at.slice(0,10)}</div>
+      </div>
+      <span style="font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:4px;font-weight:600;background:${r.status==='approved'?'rgba(61,107,92,.12)':r.status==='rejected'?'rgba(184,60,60,.12)':'rgba(160,115,42,.15)'};color:${r.status==='approved'?'var(--accent2)':r.status==='rejected'?'var(--error)':'var(--warn)'}">${r.status}</span>
+    </div>`).join('') :
+    '<div style="color:var(--muted);font-size:13px;padding:12px">No requests yet.</div>';
+}
+
+async function submitPermRequest() {
+  const perm = document.getElementById('req-perm-select').value;
+  const reason = document.getElementById('req-perm-reason').value.trim();
+  const statusEl = document.getElementById('req-perm-status');
+  if(!perm) { statusEl.style.display='block'; statusEl.style.color='var(--error)'; statusEl.textContent='Please select a permission.'; return; }
+  const r = await (await fetch('/permissions/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({permission:perm,reason})})).json();
+  statusEl.style.display='block';
+  statusEl.style.color = r.success ? 'var(--success)' : 'var(--error)';
+  statusEl.textContent = r.message || r.error;
+  if(r.success) { document.getElementById('req-perm-reason').value=''; loadPermissionsPage(); }
+}
+
+function switchDbTab(name) {
+  document.querySelectorAll('.db-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.db-tab-body').forEach(b=>b.classList.remove('active'));
+  document.getElementById('dbtab-'+name).classList.add('active');
+  document.getElementById('dbbody-'+name).classList.add('active');
+}
+
+// ── DB connection helpers ─────────────────────────────────────────
+function fillPath(p) { document.getElementById('local-path').value=p; }
+function fillMySQL(s) { document.getElementById('mysql-str').value=s; }
+function fillPG(s)    { document.getElementById('pg-str').value=s; }
+
+function showConnStatus(id, ok, msg) {
+  const el = document.getElementById(id);
+  el.className = 'conn-status ' + (ok?'ok':'err');
+  el.textContent = (ok?'✓ ':'✗ ') + msg;
+}
+
+function updateActiveDB(name, type) {
+  // Header pill
+  document.getElementById('header-db-name').textContent = name;
+  document.getElementById('header-db-type').textContent = type;
+  document.getElementById('header-db-type').className = 'db-type-badge '+type;
+  document.getElementById('header-db-dot').className = 'db-dot '+type;
+  // Sidebar banner
+  document.getElementById('adb-name').textContent = name;
+  document.getElementById('adb-type').textContent = type;
+  document.getElementById('adb-dot').className = 'adb-dot '+type;
+}
+
+function updateSchemaDisplay(schema) {
+  document.getElementById('schema-display').innerHTML = schema.split('\n').map(line => {
+    const parts = line.split('(');
+    return `<div><span class="schema-table">${parts[0]}</span>${parts[1]?`<span class="schema-cols">(${parts[1]}</span>`:''}</div>`;
+  }).join('');
+}
+
+async function doConnect(connStr, statusId) {
+  const btn = event.target.closest('button');
+  if (btn) { btn.disabled=true; btn.textContent='Connecting…'; }
+  try {
+    const res = await apiFetch('/db/connect', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({conn_str: connStr})
+    });
+    if (!res) return;
+    const data = await res.json();
+    if (data.success) {
+      showConnStatus(statusId, true, data.message);
+      updateActiveDB(data.db_name, data.db_type);
+      updateSchemaDisplay(data.schema);
+    } else {
+      showConnStatus(statusId, false, data.error);
+    }
+  } catch(e) {
+    showConnStatus(statusId, false, 'Network error: '+e.message);
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent='Connect'; }
+  }
+}
+
+async function doTest(connStr, statusId) {
+  showConnStatus(statusId, true, 'Testing…');
+  try {
+    const res = await apiFetch('/db/test', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({conn_str: connStr})
+    });
+    if (!res) return;
+    const data = await res.json();
+    showConnStatus(statusId, data.success, data.message);
+  } catch(e) {
+    showConnStatus(statusId, false, 'Network error: '+e.message);
+  }
+}
+
+function connectLocal() { doConnect(document.getElementById('local-path').value.trim(), 'local-status'); }
+function testLocal()    { doTest(document.getElementById('local-path').value.trim(), 'local-status'); }
+function connectMySQL() { doConnect(document.getElementById('mysql-str').value.trim(), 'mysql-status'); }
+function testMySQL()    { doTest(document.getElementById('mysql-str').value.trim(), 'mysql-status'); }
+function connectPG()    { doConnect(document.getElementById('pg-str').value.trim(), 'pg-status'); }
+function testPG()       { doTest(document.getElementById('pg-str').value.trim(), 'pg-status'); }
+
+async function resetToDemo() {
+  const res = await apiFetch('/db/reset', {method:'POST'});
+  if (!res) return;
+  const data = await res.json();
+  if (data.success) {
+    updateActiveDB('demo.db', 'sqlite');
+    updateSchemaDisplay(data.schema);
+    switchDbTab('demo');
+  }
+}
+
+// Upload
+const uploadDefaultHTML = `
+  <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+  </svg>
+  <div class="upload-text">Drop your .db file here</div>
+  <div class="upload-sub">or click to browse — SQLite files only</div>`;
+
+async function uploadDB(input) {
+  const file = input.files[0]; if (!file) return;
+  const formData = new FormData(); formData.append('database', file);
+  document.getElementById('upload-label').innerHTML = `
+    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    <div class="upload-text">Uploading…</div><div class="upload-sub">Processing database</div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+  try {
+    const res = await apiFetch('/db/upload', {method:'POST', body:formData});
+    if (!res) return;
+    const data = await res.json();
+    if (data.success) {
+      showConnStatus('upload-status', true, `${data.db_name} loaded! ${data.tables.length} tables found.`);
+      updateActiveDB(data.db_name, 'sqlite');
+      updateSchemaDisplay(data.schema);
+      document.getElementById('upload-label').innerHTML = `
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div class="upload-text" style="color:var(--success)">${data.db_name} loaded!</div>
+        <div class="upload-sub">${data.tables.length} table${data.tables.length!==1?'s':''} found</div>`;
+    } else {
+      showConnStatus('upload-status', false, data.error);
+      document.getElementById('upload-label').innerHTML = uploadDefaultHTML;
+    }
+  } catch(e) {
+    showConnStatus('upload-status', false, 'Upload failed: '+e.message);
+    document.getElementById('upload-label').innerHTML = uploadDefaultHTML;
+  }
+}
+
+// Drag & drop for .db upload
+const uploadLabel = document.getElementById('upload-label');
+const uploadInput = document.getElementById('db-upload');
+uploadLabel.addEventListener('dragover',  e=>{e.preventDefault();uploadLabel.classList.add('dragover');});
+uploadLabel.addEventListener('dragleave', e=>{e.preventDefault();uploadLabel.classList.remove('dragover');});
+uploadLabel.addEventListener('drop', e=>{
+  e.preventDefault(); uploadLabel.classList.remove('dragover');
+  if(e.dataTransfer.files.length>0){uploadInput.files=e.dataTransfer.files;uploadDB(uploadInput);}
+});
+
+// ── CSV / Excel Upload ────────────────────────────────────────────
+let csvSelectedFile = null;
+
+// Drag & drop for CSV/Excel
+const csvLabel = document.getElementById('csv-upload-label');
+const csvInput = document.getElementById('csv-file-input');
+csvLabel.addEventListener('dragover',  e=>{e.preventDefault();csvLabel.classList.add('dragover');});
+csvLabel.addEventListener('dragleave', e=>{e.preventDefault();csvLabel.classList.remove('dragover');});
+csvLabel.addEventListener('drop', e=>{
+  e.preventDefault(); csvLabel.classList.remove('dragover');
+  if(e.dataTransfer.files.length>0){
+    csvInput.files = e.dataTransfer.files;
+    onCSVFileSelected(csvInput);
+  }
+});
+
+function isExcelFile(name) {
+  return name.toLowerCase().endsWith('.xlsx') || name.toLowerCase().endsWith('.xls');
+}
+
+async function onCSVFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  csvSelectedFile = file;
+
+  const isExcel = isExcelFile(file.name);
+
+  // Update drop zone label
+  csvLabel.innerHTML = `
+    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+    </svg>
+    <div class="upload-text" style="color:var(--accent2)">${file.name}</div>
+    <div class="upload-sub">${(file.size/1024).toFixed(1)} KB · ${isExcel ? 'Excel' : 'CSV'} — previewing…</div>`;
+
+  // Show options
+  document.getElementById('csv-options').classList.remove('hidden');
+  document.getElementById('csv-btn-row').style.display = 'flex';
+
+  // Show/hide delimiter (CSV only) vs sheet selector (Excel only)
+  document.getElementById('csv-delim-group').style.display  = isExcel ? 'none' : '';
+  document.getElementById('csv-sheet-group').classList.add('hidden');
+
+  // Auto-fill table name
+  const base = file.name.replace(/\.(csv|xlsx|xls)$/i,'').replace(/[^a-zA-Z0-9_]/g,'_').toLowerCase();
+  const tname = document.getElementById('csv-table-name');
+  if (!tname.value) tname.value = base;
+
+  await previewFile(file);
+}
+
+async function previewFile(file) {
+  const formData = new FormData();
+  formData.append('csvfile', file);
+  const delim = document.getElementById('csv-delimiter').value;
+  if (delim) formData.append('delimiter', delim);
+
+  try {
+    const res = await apiFetch('/db/preview-csv', {method:'POST', body: formData});
+    if (!res) return;
+    const data = await res.json();
+
+    if (data.error) {
+      showConnStatus('csv-status', false, data.error);
+      return;
+    }
+
+    // If Excel — show sheet selector
+    if (data.sheets && data.sheets.length > 0) {
+      const sel = document.getElementById('csv-sheet-name');
+      sel.innerHTML = data.sheets.map(s => `<option value="${s}">${s}</option>`).join('');
+      document.getElementById('csv-sheet-group').classList.remove('hidden');
+    }
+
+    renderPreviewTable(data);
+
+    const fileTypeLabel = data.file_type === 'excel' ? 'Excel' : 'CSV';
+    const delimText = data.delimiter
+      ? `Delimiter: ${({',' : 'comma', ';': 'semicolon', '\t': 'tab', '|': 'pipe'}[data.delimiter] || data.delimiter)}  · `
+      : '';
+    document.getElementById('csv-preview-meta').textContent =
+      `${fileTypeLabel}  ·  ${delimText}${data.headers.length} columns`;
+
+    document.getElementById('csv-preview-box').classList.remove('hidden');
+    document.getElementById('csv-status').className = 'conn-status';
+
+  } catch(e) {
+    showConnStatus('csv-status', false, 'Preview failed: ' + e.message);
+  }
+}
+
+function renderPreviewTable(data) {
+  const thead = document.getElementById('csv-preview-head');
+  const tbody = document.getElementById('csv-preview-body');
+
+  thead.innerHTML = '<tr>' + data.headers.map((h,i) => `
+    <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap">
+      ${h}
+      <span style="font-size:9px;padding:1px 5px;border-radius:3px;margin-left:4px;background:var(--cream);color:var(--muted)">${data.col_types[i]}</span>
+    </th>`).join('') + '</tr>';
+
+  if (data.sample_rows && data.sample_rows.length > 0) {
+    tbody.innerHTML = data.sample_rows.map(row =>
+      '<tr>' + row.map(cell =>
+        `<td style="padding:7px 12px;border-bottom:1px solid rgba(207,200,187,.4);color:var(--ink)">${
+          (cell === null || cell === '') ? '<span style="color:var(--warm);font-style:italic">null</span>' : cell
+        }</td>`
+      ).join('') + '</tr>'
+    ).join('');
+  } else {
+    tbody.innerHTML = `<tr><td colspan="${data.headers.length}" style="padding:12px;text-align:center;color:var(--muted)">No sample rows available</td></tr>`;
+  }
+}
+
+// Re-preview when delimiter changes (CSV only)
+document.getElementById('csv-delimiter').addEventListener('change', ()=>{
+  if (csvSelectedFile && !isExcelFile(csvSelectedFile.name)) previewFile(csvSelectedFile);
+});
+
+// Re-preview when sheet changes (Excel only) — but just update table name suggestion
+async function onSheetChange() {
+  if (!csvSelectedFile) return;
+  const sheet = document.getElementById('csv-sheet-name').value;
+  // Update table name suggestion to sheet name
+  const tname = document.getElementById('csv-table-name');
+  const cleanSheet = sheet.replace(/[^a-zA-Z0-9_]/g,'_').toLowerCase();
+  tname.value = cleanSheet;
+}
+
+async function loadCSV() {
+  if (!csvSelectedFile) { showConnStatus('csv-status', false, 'No file selected.'); return; }
+
+  const btn = document.getElementById('csv-load-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin2 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading…`;
+
+  const formData = new FormData();
+  formData.append('csvfile', csvSelectedFile);
+
+  const tableName = document.getElementById('csv-table-name').value.trim();
+  if (tableName) formData.append('table_name', tableName);
+
+  const delim = document.getElementById('csv-delimiter').value;
+  if (delim) formData.append('delimiter', delim);
+
+  const sheetEl = document.getElementById('csv-sheet-name');
+  if (!document.getElementById('csv-sheet-group').classList.contains('hidden') && sheetEl.value) {
+    formData.append('sheet_name', sheetEl.value);
+  }
+
+  try {
+    const res = await apiFetch('/db/upload-csv', {method:'POST', body: formData});
+    if (!res) return;
+    const data = await res.json();
+
+    if (data.success) {
+      const isExcel = isExcelFile(csvSelectedFile.name);
+      const typeLabel = isExcel ? 'Excel' : 'CSV';
+      showConnStatus('csv-status', true,
+        `✓ Loaded "${data.table_name}" — ${data.total_rows.toLocaleString()} rows` +
+        (data.skipped_rows > 0 ? `, ${data.skipped_rows} skipped` : ''));
+      updateActiveDB(data.db_name, 'sqlite');
+      updateSchemaDisplay(data.schema);
+
+      csvLabel.innerHTML = `
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <div class="upload-text" style="color:var(--success)">${csvSelectedFile.name} loaded!</div>
+        <div class="upload-sub">Table: <strong>${data.table_name}</strong> · ${data.total_rows.toLocaleString()} rows · ${data.columns.length} columns</div>`;
+    } else {
+      showConnStatus('csv-status', false, data.error);
+    }
+  } catch(e) {
+    showConnStatus('csv-status', false, 'Upload failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg> Load &amp; Connect`;
+  }
+}
+
+// ── Loading ───────────────────────────────────────────────────────
+const MSGS=['Analysing your question…','Extracting schema context…','Generating SQL query…','Validating output…'];
+let loadingInterval=null;
+function startLoading(){
+  let i=0;
+  document.getElementById('loading-wrap').classList.add('visible');
+  document.getElementById('loading-text').textContent=MSGS[0];
+  loadingInterval=setInterval(()=>{i=(i+1)%MSGS.length;document.getElementById('loading-text').textContent=MSGS[i];},800);
+}
+function stopLoading(){clearInterval(loadingInterval);document.getElementById('loading-wrap').classList.remove('visible');}
+function setQuestion(q){document.getElementById('question').value=q;document.getElementById('question').focus();onQuestionInput();}
+function vis(id){document.getElementById(id).classList.add('visible');}
+function unvis(id){document.getElementById(id).classList.remove('visible');}
+function setText(id,v){document.getElementById(id).textContent=v;}
+
+// ── Live intent as user types ─────────────────────────────────────
+let intentTimer=null;
+function onQuestionInput(){
+  const q=document.getElementById('question').value.trim();
+  if(!q){
+    document.getElementById('intent-badge').classList.add('hidden');
+    document.getElementById('intent-conf').classList.add('hidden');
+    document.getElementById('suggestions-row').innerHTML='';
+    document.getElementById('pred-wrap').style.display='none';
+    return;
+  }
+  clearTimeout(intentTimer);
+  intentTimer=setTimeout(()=>{fetchIntent(q);fetchSuggestions(q);},400);
+}
+
+async function fetchIntent(q){
+  try{
+    const res=await apiFetch('/ml/intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    if(!res)return;
+    const data=await res.json();
+    if(!data.intent)return;
+    const badge=document.getElementById('intent-badge');
+    const conf=document.getElementById('intent-conf');
+    badge.textContent=data.intent;
+    badge.classList.remove('hidden');
+    conf.textContent=data.confidence+'% confidence';
+    conf.classList.remove('hidden');
+    if(data.scores){
+      const top=Math.max(...Object.values(data.scores));
+      const prob=Math.min(95,Math.max(30,top*0.9+10));
+      setPredBar(prob);
+    }
+  }catch(e){}
+}
+
+async function fetchSuggestions(q){
+  try{
+    const res=await apiFetch('/ml/suggest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    if(!res)return;
+    const data=await res.json();
+    const row=document.getElementById('suggestions-row');
+    if(data.suggestions&&data.suggestions.length>0){
+      row.innerHTML=data.suggestions.map(s=>
+        `<div class="suggestion-chip" onclick="setQuestion('${s.question.replace(/'/g,"\\'")}')">💡 ${s.question} <span style="opacity:.5">(${s.similarity}%)</span></div>`
+      ).join('');
+    }else{row.innerHTML='';}
+  }catch(e){}
+}
+
+function setPredBar(prob){
+  const wrap=document.getElementById('pred-wrap');
+  const fill=document.getElementById('pred-fill');
+  const pct=document.getElementById('pred-pct');
+  wrap.style.display='block';
+  fill.style.width=prob+'%';
+  fill.className='pred-fill '+(prob>=70?'high':prob>=45?'med':'low');
+  pct.textContent=prob.toFixed(0)+'%';
+}
+
+// ── Two-step query flow ───────────────────────────────────────────
+// Step 1: Generate SQL from natural language
+async function generateSQL(){
+  const question=document.getElementById('question').value.trim();
+  if(!question)return;
+
+  // Hide previous results
+  hideEl('sql-editor-card');
+  hideEl('result-card');
+  unvis('error-box');
+
+  startLoading();
+  document.getElementById('generate-btn').disabled=true;
+
+  try{
+    const res=await apiFetch('/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question})
+    });
+    if(!res)return;
+    const data=await res.json();
+    stopLoading();
+    document.getElementById('generate-btn').disabled=false;
+
+    if(!data.success){
+      setText('error-msg',data.error||'SQL generation failed.');
+      vis('error-box');
+      return;
+    }
+
+    // Update ML prediction bar
+    if(data.ml&&data.ml.prediction&&data.ml.prediction.trained){
+      setPredBar(data.ml.prediction.probability);
+    }
+
+    // Populate SQL editor
+    document.getElementById('sql-editor').value=data.sql;
+
+    // Show permission warning if this SQL type is not allowed
+    const permWarn = document.getElementById('perm-warn-bar');
+    if(permWarn) {
+      if(data.allowed === false) {
+        permWarn.style.display = 'flex';
+        permWarn.querySelector('.perm-warn-msg').textContent =
+          'This query requires the "' + data.required_permission + '" permission. You can request it in the Permissions tab.';
+        document.getElementById('execute-btn').disabled = true;
+      } else {
+        permWarn.style.display = 'none';
+        document.getElementById('execute-btn').disabled = false;
+      }
+    }
+
+    // Show intent tag
+    if(data.ml&&data.ml.intent){
+      const t=document.getElementById('tag-intent');
+      t.textContent=data.ml.intent+' · '+data.ml.intent_conf+'%';
+      t.style.display='';
+    }
+
+    setText('tag-gen-ms', data.gen_ms+'ms');
+    showEl('sql-editor-card');
+
+    // Auto-resize textarea to fit content
+    const ta=document.getElementById('sql-editor');
+    ta.style.height='auto';
+    ta.style.height=ta.scrollHeight+'px';
+
+    // Scroll editor into view
+    document.getElementById('sql-editor-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  }catch(e){
+    stopLoading();
+    document.getElementById('generate-btn').disabled=false;
+    setText('error-msg','Network error: '+e.message);
+    vis('error-box');
+  }
+}
+
+// Step 2: Execute the SQL (user may have edited it)
+async function executeSQL(){
+  const sql=document.getElementById('sql-editor').value.trim();
+  if(!sql){ setText('error-msg','SQL is empty.'); vis('error-box'); return; }
+
+  const question=document.getElementById('question').value.trim();
+
+  hideEl('result-card');
+  unvis('error-box');
+
+  // Show executing state on button
+  const execBtn=document.getElementById('execute-btn');
+  execBtn.disabled=true;
+  execBtn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin2 .7s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Executing…`;
+
+  // Loading bar (reuse)
+  startLoading();
+  document.getElementById('loading-text').textContent='Executing query…';
+
+  try{
+    const res=await apiFetch('/execute',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sql, question})
+    });
+    if(!res)return;
+    const data=await res.json();
+    stopLoading();
+    execBtn.disabled=false;
+    execBtn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg> Execute Query`;
+
+    if(!data.success){
+      setText('error-msg', data.error||'Execution failed.');
+      vis('error-box');
+      // If auto-fix produced a different SQL, update the editor
+      if(data.sql && data.sql !== sql){
+        document.getElementById('sql-editor').value=data.sql;
+        document.getElementById('fix-notice').classList.add('visible');
+      }
+      return;
+    }
+
+    // Show auto-fix notice if SQL was modified
+    if(data.fixed){
+      vis('fix-notice');
+      // Update editor to show the fixed SQL
+      document.getElementById('sql-editor').value=data.sql;
+    } else {
+      unvis('fix-notice');
+    }
+
+    // Populate results card
+    setText('sql-output', data.sql);
+    setText('tag-rows',`${data.row_count} row${data.row_count!==1?'s':''}`);
+    setText('tag-ms',`${data.exec_ms}ms`);
+    document.getElementById('explanation').textContent=data.explanation;
+
+    const thead=document.getElementById('table-head');
+    const tbody=document.getElementById('table-body');
+    thead.innerHTML='<tr>'+data.columns.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+    if(data.rows.length===0){
+      tbody.innerHTML=`<tr><td colspan="${data.columns.length}" class="no-results">No results found</td></tr>`;
+    }else{
+      tbody.innerHTML=data.rows.map(row=>
+        '<tr>'+row.map(cell=>cell===null?`<td><span class="null-val">NULL</span></td>`:`<td>${cell}</td>`).join('')+'</tr>'
+      ).join('');
+    }
+
+    showEl('result-card');
+    refreshAnalytics();
+    document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  }catch(e){
+    stopLoading();
+    execBtn.disabled=false;
+    execBtn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg> Execute Query`;
+    setText('error-msg','Network error: '+e.message);
+    vis('error-box');
+  }
+}
+
+// Go back to edit SQL after seeing results
+function resetToGenerate(){
+  hideEl('result-card');
+  document.getElementById('sql-editor-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// Show/hide helpers for non-vis elements
+function showEl(id){ document.getElementById(id).style.display='block'; }
+function hideEl(id){ document.getElementById(id).style.display='none'; }
+
+// Auto-resize sql textarea as user types
+document.addEventListener('DOMContentLoaded', ()=>{
+  const ta = document.getElementById('sql-editor');
+  if(ta){
+    ta.addEventListener('input', ()=>{
+      ta.style.height='auto';
+      ta.style.height=ta.scrollHeight+'px';
+    });
+  }
+});
+
+
+// ── Analytics ─────────────────────────────────────────────────────
+async function refreshAnalytics(){
+  try{
+    const res=await apiFetch('/analytics');if(!res)return;
+    const data=await res.json();
+    setText('stat-total',data.total||'0');
+    setText('stat-acc',data.total?data.accuracy+'%':'—');
+    setText('stat-ms',data.avg_ms?String(data.avg_ms):'—');
+    setText('stat-fixed',data.self_corrected!=null?String(data.self_corrected):'0');
+    if(data.recent&&data.recent.length>0){
+      vis('history-section');
+      document.getElementById('history-list').innerHTML=data.recent.map(h=>`
+        <div class="history-item" onclick="setQuestion('${h.question.replace(/'/g,"\\'")}')">
+          <div class="h-dot ${h.success?'ok':'err'}"></div>
+          <div class="h-q">${h.question}</div>
+          <div class="h-time">${h.timestamp.slice(11,16)}</div>
+        </div>`).join('');
+    }
+  }catch(e){}
+}
+
+async function clearHistory(){
+  const res=await apiFetch('/clear-history',{method:'POST'});if(!res)return;
+  unvis('history-section');
+  setText('stat-total','0');setText('stat-acc','—');setText('stat-ms','—');setText('stat-fixed','0');
+}
+
+// ── ML Dashboard ──────────────────────────────────────────────────
+async function loadMLDashboard(){
+  try{
+    const res=await apiFetch('/ml/stats');if(!res)return;
+    const d=await res.json();
+    if(d.intent_classifier){
+      const clf=d.intent_classifier;
+      document.getElementById('clf-dot').className='ml-dot '+(clf.trained?'on':'off');
+      document.getElementById('clf-status').textContent=clf.trained?'Trained ✓':'Not trained';
+      if(clf.classes){
+        const colors={AGGREGATE:'#c8622a',COUNT:'#3d6b5c',FILTER:'#8a7f72',JOIN:'#a0732a',LOOKUP:'#b83c3c',SORT:'#4a7a9b'};
+        document.getElementById('intent-bars').innerHTML=clf.classes.map(c=>
+          `<div class="intent-bar-row">
+            <div class="intent-bar-label">${c}</div>
+            <div class="intent-bar-track"><div class="intent-bar-fill" style="width:${100/clf.classes.length}%;background:${colors[c]||'var(--accent)'}"></div></div>
+            <div class="intent-bar-pct">${Math.round(100/clf.classes.length)}%</div>
+          </div>`).join('');
+      }
+    }
+    if(d.success_predictor){
+      const pred=d.success_predictor;
+      document.getElementById('pred-dot').className='ml-dot '+(pred.trained?'on':'off');
+      document.getElementById('pred-status').textContent=pred.trained?'Trained ✓':'Needs 10+ queries';
+      if(pred.feature_importance&&pred.feature_importance.length>0){
+        document.getElementById('feat-bars').innerHTML=pred.feature_importance.map(f=>
+          `<div class="feat-row">
+            <div class="feat-label">${f.feature}</div>
+            <div class="feat-track"><div class="feat-fill" style="width:${Math.min(f.importance*3,100)}%"></div></div>
+            <div class="feat-pct">${f.importance}%</div>
+          </div>`).join('');
+      }
+    }
+    if(d.query_suggester){
+      const sug=d.query_suggester;
+      document.getElementById('sug-dot').className='ml-dot '+(sug.ready?'on':'off');
+      document.getElementById('sug-info').textContent=sug.ready?`Fitted on ${sug.questions} successful queries ✓`:'Run 3+ queries to enable suggestions.';
+    }
+  }catch(e){}
+  try{
+    const res=await apiFetch('/ml/clusters');if(!res)return;
+    const d=await res.json();
+    if(d.clusters&&d.clusters.length>0){
+      document.getElementById('cluster-list').innerHTML=d.clusters.map(c=>
+        `<div class="cluster-item">
+          <div class="cluster-label">${c.label}</div>
+          <div class="cluster-questions">${c.questions.slice(0,3).map(q=>`<div class="cluster-q">${q}</div>`).join('')}</div>
+          <div class="cluster-count">${c.count} queries in this cluster</div>
+        </div>`).join('');
+    }
+  }catch(e){}
+}
+
+async function trainModels(){
+  const btn=document.getElementById('train-btn');
+  const res_el=document.getElementById('train-result');
+  btn.disabled=true;
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin2 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Training…`;
+  try{
+    const res=await apiFetch('/ml/train',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    if(!res)return;
+    const data=await res.json();
+    if(data.success){
+      const r=data.results;
+      res_el.innerHTML=`✓ Intent Classifier: ${r.intent_classifier?.accuracy||'?'}% accuracy<br>
+        ✓ Success Predictor: ${typeof r.success_predictor==='object'?(r.success_predictor?.cv_accuracy||'trained')+'% CV':r.success_predictor}<br>
+        ✓ Query Suggester: ${r.query_suggester}`;
+      res_el.classList.add('visible');
+      loadMLDashboard();
+    }
+  }catch(e){}
+  btn.disabled=false;
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Retrain All Models`;
+}
+
+async function logout(){await fetch('/auth/logout',{method:'POST'});window.location.href='/login';}
+
+// Init
+refreshAnalytics();
+</script>
+<style>@keyframes spin2{to{transform:rotate(360deg)}}</style>
+</body>
+</html>
