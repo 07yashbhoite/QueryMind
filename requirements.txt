@@ -13,7 +13,7 @@ openpyxl>=3.1.0
 xlrd>=2.0.1
 
 # Optional — only needed for MySQL or PostgreSQL connections
-# pip install pymysql          (MySQL)
-# pip install psycopg2-binary  (PostgreSQL)
+pip install pymysql          (MySQL)
+pip install psycopg2-binary  (PostgreSQL)
 
 gunicorn>=23.0.0
